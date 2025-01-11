@@ -65,3 +65,5 @@ pylint.report
 # Others
 *.DS_Store
 Thumbs.db
+
+raw_data
