@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  sources:
+    image: postgres:16
+    container_name: pactravel-src
+    environment:
+      - POSTGRES_DB=${SRC_POSTGRES_DB}
+      - POSTGRES_USER=${SRC_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${SRC_POSTGRES_PASSWORD}
+    ports:
+      - ${SRC_POSTGRES_PORT}:5432
+    volumes:
+      - ./data/src_data:/docker-entrypoint-initdb.d
+      - source-volume:/var/lib/postgresql/data
+
+  dwh:
+    image: postgres:16
+    container_name: pactravel-dwh
+    environment:
+      - POSTGRES_DB=${DWH_POSTGRES_DB}
+      - POSTGRES_USER=${DWH_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${DWH_POSTGRES_PASSWORD}
+    ports:
+      - ${DWH_POSTGRES_PORT}:5432
+    volumes:
+      - dwh_volume:/var/lib/postgresql/data
+      - ./data/dwh_data/:/docker-entrypoint-initdb.d
+
+volumes:
+  source-volume:
+  dwh_volume:

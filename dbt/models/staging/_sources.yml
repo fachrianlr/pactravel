@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+   - name: pactravel_dwh
+     database: pactravel-dwh
+     schema: pactravel
+     tables:
+      - name: customers
+      - name: hotel
