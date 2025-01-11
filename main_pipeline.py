@@ -6,8 +6,10 @@ import logging
 import psycopg2
 import pandas as pd
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+load_dotenv()
 
 class GlobalParams(luigi.Config):
     current_date = luigi.Parameter(default = datetime.datetime.now().strftime('%Y-%m-%d'))
@@ -22,7 +24,7 @@ class dbtDebug(luigi.Task):
         pass
 
     def output(self):
-        return luigi.LocalTarget(f"logs/dbt_debug_logs_{self.get_current_date}.log")
+        return luigi.LocalTarget(f"logs/dbt_debug_{self.get_current_date}.log")
     
     def run(self):
         try:
@@ -54,7 +56,7 @@ class dbtDeps(luigi.Task):
         return dbtDebug()
     
     def output(self):
-        return luigi.LocalTarget(f"logs/dbt_deps_logs_{self.get_current_date}.log")
+        return luigi.LocalTarget(f"logs/dbt_deps_{self.get_current_date}.log")
 
     def run(self):
         try:
@@ -86,7 +88,7 @@ class dbtRun(luigi.Task):
         return dbtDeps()
     
     def output(self):
-        return luigi.LocalTarget(f"logs/dbt_run_logs_{self.get_current_date}.log")
+        return luigi.LocalTarget(f"logs/dbt_run_{self.get_current_date}.log")
     
     def run(self):
         try:
@@ -118,7 +120,7 @@ class dbtTest(luigi.Task):
         return dbtRun()
     
     def output(self):
-        return luigi.LocalTarget(f"logs/dbt_test_logs_{self.get_current_date}.log")
+        return luigi.LocalTarget(f"logs/dbt_test_{self.get_current_date}.log")
 
     def run(self):
         try:
@@ -147,11 +149,11 @@ class ExtractData(luigi.Task):
 
     get_current_date = GlobalParams().current_date
 
-    db_name = 'pactravel'
-    db_host = 'localhost'
-    db_user = 'postgres'
-    db_password = 'mypassword'
-    db_port = 5437
+    db_name = os.getenv('SRC_POSTGRES_DB')
+    db_host = os.getenv('SRC_POSTGRES_HOST')
+    db_user = os.getenv('SRC_POSTGRES_USER')
+    db_password = os.getenv('SRC_POSTGRES_PASSWORD')
+    db_port = os.getenv('SRC_POSTGRES_PORT')
 
     def output(self):
         output_data = os.path.join('raw_data', str(self.get_current_date))
@@ -193,18 +195,18 @@ class ExtractData(luigi.Task):
 class LoadData(luigi.Task):
     get_current_date = GlobalParams().current_date
     
-    db_name = 'pactravel-dwh'
-    db_host = 'localhost'
-    db_user = 'postgres'
-    db_password = 'mypassword'
-    db_port = 5438
-    db_schema = 'pactravel'
-    
+    db_name = os.getenv('DWH_POSTGRES_DB')
+    db_host = os.getenv('DWH_POSTGRES_HOST')
+    db_user = os.getenv('DWH_POSTGRES_USER')
+    db_password = os.getenv('DWH_POSTGRES_PASSWORD')
+    db_port = os.getenv('DWH_POSTGRES_PORT')
+    db_schema = os.getenv('DWH_POSTGRES_SCHEMA')
+
     def requires(self):
         return ExtractData()
 
     def output(self):
-        return luigi.LocalTarget(f"logs/load_data_logs_{self.get_current_date}.log")
+        return luigi.LocalTarget(f"logs/load_data_{self.get_current_date}.log")
 
     
     def run(self):
@@ -225,7 +227,7 @@ class LoadData(luigi.Task):
             output_status = "Error"
             logging.error("Failed Process", e)
 
-        with open(f"logs/load_data_{self.get_current_date}.txt", 'w') as file:
+        with open(f"logs/load_data_{self.get_current_date}.log", 'w') as file:
             file.write(output_status)
 
 if __name__ == "__main__":
