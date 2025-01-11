@@ -6,6 +6,7 @@ import logging
 import psycopg2
 import pandas as pd
 import os
+from sqlalchemy import create_engine
 
 
 class GlobalParams(luigi.Config):
@@ -189,8 +190,46 @@ class ExtractData(luigi.Task):
         conn.close()
 
 
+class LoadData(luigi.Task):
+    get_current_date = GlobalParams().current_date
+    
+    db_name = 'pactravel-dwh'
+    db_host = 'localhost'
+    db_user = 'postgres'
+    db_password = 'mypassword'
+    db_port = 5438
+    db_schema = 'pactravel'
+    
+    def requires(self):
+        return ExtractData()
+
+    def output(self):
+        return luigi.LocalTarget(f"logs/load_data_logs_{self.get_current_date}.log")
+
+    
+    def run(self):
+        output_status = "Success"
+        raw_data = os.path.join('raw_data', str(self.get_current_date))
+        try:
+            for file_name in os.listdir(raw_data):
+                file_path = os.path.join(raw_data, file_name)
+                
+                df = pd.read_csv(file_path)
+                table_name = f"{self.db_schema}.{os.path.splitext(file_name)[0]}"
+                
+                engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+                df.to_sql(table_name, engine, if_exists='replace', index=False)
+
+            logging.info("Start Load Data Process")
+        except Exception as e:
+            output_status = "Error"
+            logging.error("Failed Process", e)
+
+        with open(f"logs/load_data_{self.get_current_date}.txt", 'w') as file:
+            file.write(output_status)
+
 if __name__ == "__main__":
     luigi.build(
-        [ExtractData()], 
+        [LoadData()], 
         local_scheduler=True
     )
