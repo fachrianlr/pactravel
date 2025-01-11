@@ -172,7 +172,6 @@ class ExtractData(luigi.Task):
         cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
         tables = cursor.fetchall()
 
-        all_data = []
         for table in tables:
             table_name = table[0]
             print(f"Extracting data from table: {table_name}")
@@ -200,7 +199,8 @@ class LoadData(luigi.Task):
     db_user = os.getenv('DWH_POSTGRES_USER')
     db_password = os.getenv('DWH_POSTGRES_PASSWORD')
     db_port = os.getenv('DWH_POSTGRES_PORT')
-    db_schema = os.getenv('DWH_POSTGRES_SCHEMA')
+    # db_schema = os.getenv('DWH_POSTGRES_SCHEMA')
+    db_schema = "pactravel"
 
     def requires(self):
         return ExtractData()
@@ -210,6 +210,7 @@ class LoadData(luigi.Task):
 
     
     def run(self):
+        logging.info("Start Load Data Process")
         output_status = "Success"
         raw_data = os.path.join('raw_data', str(self.get_current_date))
         try:
@@ -217,18 +218,19 @@ class LoadData(luigi.Task):
                 file_path = os.path.join(raw_data, file_name)
                 
                 df = pd.read_csv(file_path)
-                table_name = f"{self.db_schema}.{os.path.splitext(file_name)[0]}"
+                table_name = os.path.splitext(file_name)[0]
+                logging.info("table_name: ", table_name)
+                
                 
                 engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
-                df.to_sql(table_name, engine, if_exists='replace', index=False)
-
-            logging.info("Start Load Data Process")
+                df.to_sql(table_name, engine, schema=self.db_schema, if_exists='replace', index=False)
         except Exception as e:
             output_status = "Error"
             logging.error("Failed Process", e)
 
         with open(f"logs/load_data_{self.get_current_date}.log", 'w') as file:
             file.write(output_status)
+
 
 if __name__ == "__main__":
     luigi.build(
