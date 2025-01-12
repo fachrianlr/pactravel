@@ -67,3 +67,5 @@ pylint.report
 Thumbs.db
 
 raw_data
+
+logs/*
