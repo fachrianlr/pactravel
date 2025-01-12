@@ -155,6 +155,9 @@ class TransformData(luigi.Task):
 
                 p1.wait()
             
+            with open(f"logs/transform_data_{self.get_current_date}.txt", "w") as file:
+                file.write("Load Data Success")
+
             logger.info("Transform Data Process Success")
         except Exception as e:
             logger.error("Failed Process", e)
