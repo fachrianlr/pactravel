@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from config.logging_conf import logger
 
-
 load_dotenv()
+
 
 class GlobalParams(luigi.Config):
     current_date = luigi.Parameter(default = datetime.datetime.now().strftime('%Y-%m-%d'))
