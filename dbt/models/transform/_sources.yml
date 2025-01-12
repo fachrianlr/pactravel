@@ -10,3 +10,5 @@ sources:
       - name: airlines
       - name: airports
       - name: hotel
+      - name: flight_bookings
+      - name: hotel_bookings
