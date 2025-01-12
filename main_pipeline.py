@@ -28,11 +28,15 @@ class ExtractData(luigi.Task):
     db_port = os.getenv('SRC_POSTGRES_PORT')
 
     def output(self):
-        output_data = os.path.join('raw_data', str(self.get_current_date))
-        return luigi.LocalTarget(output_data)
+        return luigi.LocalTarget(f"logs/extract_data_{self.get_current_date}.txt")
 
     def run(self):
         logger.info("Start Extract Data Process")
+        logger.info(
+            f"db_host={os.getenv('DWH_POSTGRES_HOST')}, "
+            f"db_name={os.getenv('DWH_POSTGRES_DB')}, "
+            f"db_schema={os.getenv('DWH_POSTGRES_SCHEMA')}"
+        )
         
         conn = psycopg2.connect(
             dbname=self.db_name,
@@ -49,22 +53,27 @@ class ExtractData(luigi.Task):
 
             for table in tables:
                 table_name = table[0]
-                logger.info(f"Extracting data from table: {table_name}")
                 cursor.execute(f"SELECT * FROM {table_name};")
 
                 columns = [desc[0] for desc in cursor.description]
                 rows = cursor.fetchall()
+                logger.info(f"Extracting data from table: {table_name}, total rows: {len(rows)}")
+
                 df = pd.DataFrame(rows, columns=columns)
-                
                 output_file = os.path.join('raw_data', str(self.get_current_date), f"{table_name}.csv")
                 os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
+                logger.info(f"Writing data to {output_file}")
                 with open(output_file, 'w', newline='', encoding='utf-8') as f:
                     df.to_csv(f, index=False, encoding='utf-8')
 
             cursor.close()
             conn.close()
             
+            with open(f"logs/extract_data_{self.get_current_date}.txt", "w") as file:
+                file.write("Extract Data Success")
+
+            logger.info("Extract Data Success")
         except Exception as e:
             logger.error("Failed Process", e)
 
@@ -83,11 +92,16 @@ class LoadData(luigi.Task):
         return ExtractData()
 
     def output(self):
-        return luigi.LocalTarget(f"logs/load_data_{self.get_current_date}.log")
+        return luigi.LocalTarget(f"logs/load_data_{self.get_current_date}.txt")
 
-    
     def run(self):
         logger.info("Start Load Data Process")
+        logger.info(
+            f"db_host={os.getenv('DWH_POSTGRES_HOST')}, "
+            f"db_name={os.getenv('DWH_POSTGRES_DB')}, "
+            f"db_schema={os.getenv('DWH_POSTGRES_SCHEMA')}"
+        )
+        
         raw_data = os.path.join('raw_data', str(self.get_current_date))
         try:
             for file_name in os.listdir(raw_data):
@@ -95,11 +109,16 @@ class LoadData(luigi.Task):
                 
                 df = pd.read_csv(file_path)
                 table_name = os.path.splitext(file_name)[0]
-                logger.info("table_name: ", table_name)
-                
+                logger.info(f"load table name: {table_name}")
                 
                 engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+
                 df.to_sql(table_name, engine, schema=self.db_schema, if_exists='replace', index=False)
+            
+            with open(f"logs/load_data_{self.get_current_date}.txt", "w") as file:
+                file.write("Load Data Success")
+                
+            logger.info("Load Data Success")
         except Exception as e:
             logger.error("Failed Process Load Data", e)
 
@@ -112,32 +131,34 @@ class TransformData(luigi.Task):
         return LoadData()
     
     def output(self):
-        return luigi.LocalTarget(f"logs/transform_data_{self.get_current_date}.log")
+        return luigi.LocalTarget(f"logs/transform_data_{self.get_current_date}.txt")
 
     def run(self):
         logger.info("Start Transform Data Process")
 
         try:
-            with open(self.output().path, "a") as f:
-                p1 = sp.run("dbt debug && dbt deps && dbt run --models transform && dbt test",
-                            stdout = f,
-                            stderr = sp.PIPE,
-                            text = True,
-                            shell = True,
-                            cwd = GlobalParams().dbt_folder,
-                            check = True)
+            # Start the subprocess
+            with sp.Popen(
+                "dbt debug && dbt deps && dbt run --models transform && dbt test",
+                stdout=sp.PIPE,
+                stderr=sp.PIPE,
+                text=True,
+                shell=True,
+                cwd=GlobalParams().dbt_folder
+            ) as p1:
                 
-                if p1.returncode == 0:
-                    logger.info("Success running dbt data model")
+                for line in p1.stdout:
+                    logger.info(line.strip())
 
-                else:
-                    logger.error("Failed running dbt model")
+                for line in p1.stderr:
+                    logger.error(line.strip())
 
-            time.sleep(2)
-
+                p1.wait()
+            
+            logger.info("Transform Data Process Success")
         except Exception as e:
             logger.error("Failed Process", e)
-            
+
 
 if __name__ == "__main__":
     luigi.build(
