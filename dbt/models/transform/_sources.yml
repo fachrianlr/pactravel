@@ -6,4 +6,7 @@ sources:
      schema: pactravel
      tables:
       - name: customers
+      - name: aircrafts
+      - name: airlines
+      - name: airports
       - name: hotel

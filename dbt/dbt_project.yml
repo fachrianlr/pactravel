@@ -31,7 +31,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   pactravel_dwh:
-    staging:
+    transform:
       +materialized: view
 
 
