@@ -1,4 +1,3 @@
--- models/dim_date.sql
 with date_range as (
     select 
         generate_series(

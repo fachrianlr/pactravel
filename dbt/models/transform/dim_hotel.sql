@@ -1,4 +1,3 @@
--- models/dim_hotels.sql
 with dim_hotels as (
     select 
         {{ dbt_utils.generate_surrogate_key( ["hotel_id"] ) }} as sk_hotel_id,
