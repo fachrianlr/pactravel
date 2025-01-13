@@ -12,6 +12,6 @@
 
 select
     *
-from {{ ref("dim_hotel") }}
+from {{ ref("dim_hotels") }}
 
 {% endsnapshot %}

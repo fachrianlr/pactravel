@@ -1,0 +1,243 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Dimension table for Customers"
+    columns:
+      - name: sk_customer_id
+        description: "Surrogate Key for customer_id"
+        tests: 
+          - not_null
+          - dbt_constraints.primary_key
+      - name: nk_customer_id
+        description: "Natural Key for customer_id"
+        tests:
+          - not_null
+          - unique
+      - name: customer_first_name
+        description: "First name of the customer"
+      - name: customer_family_name
+        description: "Family name of the customer"
+      - name: customer_gender
+        description: "Gender of the customer"
+      - name: customer_birth_date
+        description: "Birth date of the customer"
+      - name: customer_country
+        description: "Country of the customer"
+      - name: customer_phone_number
+        description: "Phone number of the customer"
+
+  - name: dim_airlines
+    description: "Dimension table for Airlines"
+    columns:
+      - name: sk_airline_id
+        description: "Surrogate Key for airline_id"
+        tests:
+          - not_null
+          - dbt_constraints.primary_key
+      - name: nk_airline_id
+        description: "Natural Key for airline_id"
+        tests:
+          - not_null
+          - unique
+      - name: airline_name
+        description: "Name of the airline"
+      - name: country
+        description: "Country where the airline is based"
+      - name: airline_iata
+        description: "IATA code of the airline"
+      - name: airline_icao
+        description: "ICAO code of the airline"
+      - name: alias
+        description: "Alias or alternative names for the airline"
+
+  - name: dim_airports
+    description: "Dimension table for Airports"
+    columns:
+      - name: sk_airport_id
+        description: "Surrogate Key for airport_id"
+        tests:
+          - not_null
+          - dbt_constraints.primary_key
+      - name: nk_airport_id
+        description: "Natural Key for airport_id"
+        tests:
+          - not_null
+          - unique
+      - name: airport_name
+        description: "Name of the airport"
+      - name: city
+        description: "City where the airport is located"
+      - name: latitude
+        description: "Latitude coordinate of the airport location"
+      - name: longitude
+        description: "Longitude coordinate of the airport location"
+
+  - name: dim_aircrafts
+    description: "Dimension table for Aircrafts"
+    columns:
+      - name: sk_aircraft_id
+        description: "Surrogate Key for aircraft_id"
+        tests:
+          - not_null
+          - dbt_constraints.primary_key
+      - name: nk_aircraft_id
+        description: "Natural Key for aircraft_id"
+        tests:
+          - not_null
+          - unique
+      - name: aircraft_name
+        description: "Name or model of the aircraft"
+      - name: aircraft_iata
+        description: "IATA code of the aircraft type"
+      - name: aircraft_icao
+        description: "ICAO code of the aircraft type"
+
+  - name: dim_hotels
+    description: "Dimension table for Hotels"
+    columns:
+      - name: sk_hotel_id
+        description: "Surrogate Key for hotel_id"
+        tests:
+          - not_null
+          - dbt_constraints.primary_key
+      - name: nk_hotel_id
+        description: "Natural Key for hotel_id"
+        tests:
+          - not_null 
+          - unique 
+      - name: hotel_name 
+        description : “Name of Hotel”
+
+  - name: dim_date
+    description: "Dimension table for dates, providing various date-related attributes for analysis."
+    columns:
+      - name: date_id
+        description: "Unique identifier for each date (primary key)."
+        tests:
+          - not_null
+          - unique
+          - dbt_constraints.primary_key
+      - name: year
+        description: "Year extracted from the date."
+        tests:
+          - not_null
+      - name: quarter
+        description: "Quarter of the year (1 to 4) extracted from the date."
+        tests:
+          - not_null
+      - name: month
+        description: "Month of the year (1 to 12) extracted from the date."
+        tests:
+          - not_null
+      - name: day
+        description: "Day of the month (1 to 31) extracted from the date."
+        tests:
+          - not_null
+      - name: week
+        description: "Week number of the year (1 to 53) extracted from the date."
+        tests:
+          - not_null
+      - name: day_of_week
+        description: "Name of the day of the week (e.g., Monday, Tuesday)."
+        tests:
+          - not_null
+      - name: created_at
+        description: "Timestamp indicating when this record was created in the system."
+        tests:
+          - not_null
+      - name: updated_at
+        description: "Timestamp indicating when this record was last updated in the system."
+        tests:
+          - not_null
+
+  - name: fact_flight_bookings
+    description: "Fact table for flight bookings, capturing detailed information about individual flight trips."
+    columns:
+      - name: trip_id
+        description: "Unique identifier for each trip."
+        tests:
+          - not_null
+      - name: customer_id
+        description: "Natural key for the customer associated with the booking."
+      - name: flight_number
+        description: "Flight number for the booking."
+      - name: airline_id
+        description: "Natural key for the airline associated with the booking."
+      - name: aircraft_id
+        description: "Natural key for the aircraft used in the booking."
+      - name: airport_src
+        description: "Natural key for the source airport of the flight."
+      - name: airport_dst
+        description: "Natural key for the destination airport of the flight."
+      - name: departure_time
+        description: "Time of departure for the flight."
+      - name: departure_date
+        description: "Date of departure for the flight."
+      - name: flight_duration
+        description: "Duration of the flight."
+      - name: travel_class
+        description: "Class of travel (e.g., Economy, Business)."
+      - name: seat_number
+        description: "Seat number assigned to the customer."
+      - name: price
+        description: "Price of the flight ticket."
+      - name: date_id
+        description: "Surrogate key from dim_date representing departure date."
+      - name: sk_customer_id
+        description: "Surrogate key from dim_customers representing the customer."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_customers')
+            pk_column_name: sk_customer_id
+      - name: sk_airline_id
+        description: "Surrogate key from dim_airlines representing the airline."
+      - name: sk_aircraft_id
+        description: "Surrogate key from dim_aircraft representing the aircraft."
+      - name: sk_airport_src
+        description: "Surrogate key from dim_airports representing the source airport."
+      - name: sk_airport_dst
+        description: "Surrogate key from dim_airports representing the destination airport."
+
+  - name: fact_hotel_bookings
+    description: "Fact table for hotel bookings, capturing detailed information about individual hotel stays."
+    columns:
+      - name: trip_id
+        description: "Unique identifier for each trip."
+        tests:
+          - not_null
+      - name: customer_id
+        description: "Natural key for the customer associated with the booking."
+      - name: hotel_id
+        description: "Natural key for the hotel associated with the booking."
+      - name: check_in_date
+        description: "Date when the customer checks into the hotel."
+      - name: check_out_date
+        description: "Date when the customer checks out of the hotel."
+      - name: price
+        description: "Price paid for the hotel stay."
+      - name: breakfast_included
+        description: "Indicates whether breakfast is included in the booking (true/false)."
+      - name: date_id
+        description: "Surrogate key from dim_date representing check-in date."
+      - name: sk_customer_id
+        description: "Surrogate key from dim_customers representing the customer."
+      - name: sk_hotel_id
+        description: "Surrogate key from dim_hotels representing the hotel."
+
+  - name: fct_daily_bookings
+    description: "Fact table aggregating daily booking volumes and average prices for flights and hotels."
+    columns:
+      - name: fact_date
+        description: "Date on which bookings are aggregated (from dim_date)."
+        tests:
+          - not_null
+          - unique
+      - name: total_flight_bookings
+        description: "Total number of flight bookings made on this date."
+      - name: total_hotel_bookings
+        description: "Total number of hotel bookings made on this date."
+      - name: avg_flight_price
+        description: "Average price of flight bookings on this date, rounded to two decimal places."
+      - name: avg_hotel_price
+        description: "Average price of hotel bookings on this date, rounded to two decimal places."

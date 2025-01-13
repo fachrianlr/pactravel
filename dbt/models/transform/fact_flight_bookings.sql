@@ -23,7 +23,7 @@ with fact_flight_bookings as (
     from {{ source('pactravel_dwh', 'flight_bookings') }} fb
     left join {{ ref('dim_customers') }} ca on fb.customer_id = ca.nk_customer_id
     left join {{ ref('dim_airlines') }} ai on fb.airline_id = ai.nk_airline_id
-    left join {{ ref('dim_aircraft') }} ac on fb.aircraft_id = ac.nk_aircraft_id
+    left join {{ ref('dim_aircrafts') }} ac on fb.aircraft_id = ac.nk_aircraft_id
     left join {{ ref('dim_airports') }} asrc on fb.airport_src = asrc.nk_airport_id
     left join {{ ref('dim_airports') }} adst on fb.airport_dst = adst.nk_airport_id
     left join {{ ref('dim_date') }} d on CAST(fb.departure_date AS DATE) = d.date_id

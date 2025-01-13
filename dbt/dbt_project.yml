@@ -32,7 +32,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   pactravel_dwh:
     transform:
-      +materialized: view
+      +materialized: table
 
 
 vars:
