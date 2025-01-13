@@ -8,6 +8,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from config.logging_conf import logger
+from config.sentry_conf import SENTRY_LOGGING
 
 load_dotenv()
 
@@ -74,7 +75,9 @@ class ExtractData(luigi.Task):
                 file.write("Extract Data Success")
 
             logger.info("Extract Data Success")
+
         except Exception as e:
+            SENTRY_LOGGING.capture_exception(e)
             logger.error("Failed Process", e)
 
 
@@ -124,7 +127,9 @@ class LoadData(luigi.Task):
                 file.write("Load Data Success")
                 
             logger.info("Load Data Success")
+
         except Exception as e:
+            SENTRY_LOGGING.capture_exception(e)
             logger.error("Failed Process Load Data", e)
 
 
@@ -161,10 +166,12 @@ class TransformData(luigi.Task):
                 p1.wait()
             
             with open(f"logs/transform_data_{self.get_current_date}.txt", "w") as file:
-                file.write("Load Data Success")
+                file.write("Transform Data Success")
 
             logger.info("Transform Data Process Success")
+
         except Exception as e:
+            SENTRY_LOGGING.capture_exception(e)
             logger.error("Failed Process", e)
 
 
