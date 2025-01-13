@@ -104,10 +104,20 @@ models:
       - name: nk_hotel_id
         description: "Natural Key for hotel_id"
         tests:
-          - not_null 
-          - unique 
-      - name: hotel_name 
-        description : “Name of Hotel”
+          - not_null
+          - unique
+      - name: hotel_name
+        description: "Name of the hotel."
+        tests:
+          - not_null
+      - name: hotel_address
+        description: "Address of the hotel."
+      - name: city
+        description: "City where the hotel is located."
+      - name: country
+        description: "Country where the hotel is located."
+      - name: hotel_score
+        description: "Score or rating of the hotel"
 
   - name: dim_date
     description: "Dimension table for dates, providing various date-related attributes for analysis."
