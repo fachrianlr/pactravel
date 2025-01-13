@@ -4,7 +4,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 from config.common import PARENT_FOLDER
 
-print("PARENT_FOLDER", PARENT_FOLDER)
+
 # Define the logs directory under the parent directory
 log_dir = os.path.join(PARENT_FOLDER, "logs")
 
