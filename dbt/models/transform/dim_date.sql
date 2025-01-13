@@ -1,7 +1,7 @@
 with date_range as (
     select 
         generate_series(
-            '2000-01-01'::date, -- Start date
+            '2010-01-01'::date, -- Start date
             current_date,       -- End date
             '1 day'::interval   -- Interval (daily)
         )::date as date_id

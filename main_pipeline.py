@@ -6,7 +6,7 @@ import psycopg2
 import pandas as pd
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from config.logging_conf import logger
 
 load_dotenv()
@@ -112,6 +112,11 @@ class LoadData(luigi.Task):
                 logger.info(f"load table name: {table_name}")
                 
                 engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+                # Drop the table with CASCADE
+                with engine.connect() as connection:
+                    logger.info(f"Dropping table {self.db_schema}.{table_name} with CASCADE")
+                    connection.execute(text(f"DROP TABLE IF EXISTS {self.db_schema}.{table_name} CASCADE"))
+                    connection.commit()
 
                 df.to_sql(table_name, engine, schema=self.db_schema, if_exists='replace', index=False)
             
