@@ -9,12 +9,11 @@ with fact_flight_bookings as (
         fb.airport_src,
         fb.airport_dst,
         fb.departure_time,
-        fb.departure_date,
+        CAST(fb.departure_date AS DATE),
         fb.flight_duration,
         fb.travel_class,
         fb.seat_number,
         fb.price,
-        d.date_id,
         ca.sk_customer_id,
         ai.sk_airline_id,
         ac.sk_aircraft_id,
@@ -26,8 +25,6 @@ with fact_flight_bookings as (
     left join {{ ref('dim_aircrafts') }} ac on fb.aircraft_id = ac.nk_aircraft_id
     left join {{ ref('dim_airports') }} asrc on fb.airport_src = asrc.nk_airport_id
     left join {{ ref('dim_airports') }} adst on fb.airport_dst = adst.nk_airport_id
-    left join {{ ref('dim_date') }} d on CAST(fb.departure_date AS DATE) = d.date_id
-
 )
 
 select * from fact_flight_bookings
