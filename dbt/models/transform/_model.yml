@@ -184,6 +184,10 @@ models:
         description: "Time of departure for the flight."
       - name: departure_date
         description: "Date of departure for the flight."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_date')
+            pk_column_name: date_id
       - name: flight_duration
         description: "Duration of the flight."
       - name: travel_class
@@ -192,8 +196,6 @@ models:
         description: "Seat number assigned to the customer."
       - name: price
         description: "Price of the flight ticket."
-      - name: date_id
-        description: "Surrogate key from dim_date representing departure date."
       - name: sk_customer_id
         description: "Surrogate key from dim_customers representing the customer."
         tests:
@@ -202,12 +204,28 @@ models:
             pk_column_name: sk_customer_id
       - name: sk_airline_id
         description: "Surrogate key from dim_airlines representing the airline."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_airlines')
+            pk_column_name: sk_airline_id
       - name: sk_aircraft_id
         description: "Surrogate key from dim_aircraft representing the aircraft."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_aircrafts')
+            pk_column_name: sk_aircraft_id
       - name: sk_airport_src
         description: "Surrogate key from dim_airports representing the source airport."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_airports')
+            pk_column_name: sk_airport_id
       - name: sk_airport_dst
         description: "Surrogate key from dim_airports representing the destination airport."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_airports')
+            pk_column_name: sk_airport_id
 
   - name: fact_hotel_bookings
     description: "Fact table for hotel bookings, capturing detailed information about individual hotel stays."
@@ -222,20 +240,34 @@ models:
         description: "Natural key for the hotel associated with the booking."
       - name: check_in_date
         description: "Date when the customer checks into the hotel."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_date')
+            pk_column_name: date_id
       - name: check_out_date
         description: "Date when the customer checks out of the hotel."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_date')
+            pk_column_name: date_id
       - name: price
         description: "Price paid for the hotel stay."
       - name: breakfast_included
         description: "Indicates whether breakfast is included in the booking (true/false)."
-      - name: date_id
-        description: "Surrogate key from dim_date representing check-in date."
       - name: sk_customer_id
         description: "Surrogate key from dim_customers representing the customer."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_customers')
+            pk_column_name: sk_customer_id
       - name: sk_hotel_id
         description: "Surrogate key from dim_hotels representing the hotel."
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_hotels')
+            pk_column_name: sk_hotel_id
 
-  - name: fct_daily_bookings
+  - name: fact_daily_bookings
     description: "Fact table aggregating daily booking volumes and average prices for flights and hotels."
     columns:
       - name: fact_date
@@ -243,6 +275,10 @@ models:
         tests:
           - not_null
           - unique
+        tests:
+        - dbt_constraints.foreign_key:
+            pk_table_name: ref('dim_date')
+            pk_column_name: date_id
       - name: total_flight_bookings
         description: "Total number of flight bookings made on this date."
       - name: total_hotel_bookings
