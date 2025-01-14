@@ -51,7 +51,7 @@ The dataset is based on a travel domain with multiple entities:
   - Use Type 1 SCD for dimensions like dim_aircraft, dim_airline, and dim_airport (overwrite old data).
   - Use Type 2 SCD for dim_customer to track historical changes in customer attributes (customer_country) and dim_hotel to track historical changes for hotel attributes (city, country, hotel_score).
 - ERD Diagram
-  - ![ezcv logo](https://raw.githubusercontent.com/fachrianlr/pactravel/master/assets/erd.png)
+  ![ezcv logo](https://raw.githubusercontent.com/fachrianlr/pactravel/master/assets/erd.png)
 
 
 ## ELT Pipeline Implementation
